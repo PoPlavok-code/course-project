@@ -20,7 +20,7 @@ logging.basicConfig(
 )
 
 
-def main():
+def main() -> None:
     """Основная функция приложения."""
     print("=" * 60)
     print("Приложение для анализа транзакций")
@@ -60,9 +60,12 @@ def main():
         choice = input("\nВыберите пункт меню: ").strip()
 
         if choice == "1":
-            date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            date_input = input("Введите дату (YYYY-MM-DD): ").strip()
+            if not date_input:
+                date_input = datetime.now().strftime("%Y-%m-%d")
+
             result = main_page(
-                date_str,
+                date_input,
                 transactions,
                 settings["user_currencies"],
                 settings["user_stocks"]

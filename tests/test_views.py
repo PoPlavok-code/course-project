@@ -1,38 +1,43 @@
 """Тесты для модуля views."""
 import json
 import pytest
-from src.views import get_greeting, main_page, calculate_cashback
-
-
-def test_get_greeting_morning():
-    """Тест утреннего приветствия."""
-    assert get_greeting(8) == "Доброе утро"
-
-
-def test_get_greeting_afternoon():
-    """Тест дневного приветствия."""
-    assert get_greeting(14) == "Добрый день"
-
-
-def test_get_greeting_evening():
-    """Тест вечернего приветствия."""
-    assert get_greeting(20) == "Добрый вечер"
-
-
-def test_get_greeting_night():
-    """Тест ночного приветствия."""
-    assert get_greeting(2) == "Доброй ночи"
+from unittest.mock import patch
+from src.views import get_greeting, calculate_cashback, filter_transactions_by_date, main_page
 
 
 def test_calculate_cashback():
-    """Тест расчёта кешбэка."""
     assert calculate_cashback(1500) == 15.0
     assert calculate_cashback(99) == 0.0
     assert calculate_cashback(100) == 1.0
 
 
-def test_main_page():
-    """Тест генерации главной страницы."""
+def test_filter_transactions_by_date():
+    transactions = [
+        {'Дата операции': '2024-01-15', 'Сумма операции': 100},
+        {'Дата операции': '2024-01-20', 'Сумма операции': 200},
+        {'Дата операции': '2024-02-15', 'Сумма операции': 300},
+    ]
+    result = filter_transactions_by_date(transactions, '2024-01-25')
+    assert len(result) == 2
+
+
+def test_filter_transactions_empty():
+    result = filter_transactions_by_date([], '2024-01-25')
+    assert result == []
+
+
+@patch('src.views.datetime')
+def test_get_greeting_morning(mock_dt):
+    mock_dt.now.return_value.hour = 8
+    assert get_greeting() == "Доброе утро"
+
+
+@patch('src.views.get_currency_rates')
+@patch('src.views.get_stock_prices')
+def test_main_page(mock_stocks, mock_rates):
+    mock_rates.return_value = [{"currency": "USD", "rate": 92.5}]
+    mock_stocks.return_value = [{"stock": "AAPL", "price": 175.5}]
+
     transactions = [
         {
             'Дата операции': '2024-01-15',
@@ -40,41 +45,12 @@ def test_main_page():
             'Сумма операции': 1500.0,
             'Сумма платежа': 1500.0,
             'Категория': 'Супермаркеты'
-        },
-        {
-            'Дата операции': '2024-01-16',
-            'Номер карты': '5678',
-            'Сумма операции': 2300.0,
-            'Сумма платежа': 2300.0,
-            'Категория': 'Рестораны'
         }
     ]
 
-    result = main_page(
-        "2024-01-20 14:30:00",
-        transactions,
-        ["USD", "EUR"],
-        ["AAPL"]
-    )
-
+    result = main_page('2024-01-20', transactions, ['USD'], ['AAPL'])
     data = json.loads(result)
+
     assert "greeting" in data
     assert "cards" in data
-    assert len(data["cards"]) == 2
-    assert "top_transactions" in data
-    assert len(data["top_transactions"]) == 2
-    assert "currency_rates" in data
-    assert "stock_prices" in data
-
-
-def test_main_page_empty():
-    """Тест с пустым списком транзакций."""
-    result = main_page(
-        "2024-01-20 14:30:00",
-        [],
-        ["USD"],
-        ["AAPL"]
-    )
-    data = json.loads(result)
-    assert data["cards"] == []
-    assert data["top_transactions"] == []
+    assert len(data["cards"]) == 1

@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def save_report(filename: Optional[str] = None):
+def save_report(filename: Optional[str] = None) -> Any:
     """
     Декоратор для сохранения результатов отчета в файл.
 
@@ -22,9 +22,9 @@ def save_report(filename: Optional[str] = None):
         Декоратор
     """
 
-    def decorator(func):
+    def decorator(func: Any) -> Any:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             result = func(*args, **kwargs)
 
             if filename:
@@ -34,7 +34,6 @@ def save_report(filename: Optional[str] = None):
 
             try:
                 if isinstance(result, pd.DataFrame):
-                    # Конвертируем DataFrame в JSON
                     result.to_json(file_name, orient='records', force_ascii=False, indent=2)
                 elif isinstance(result, dict):
                     with open(file_name, 'w', encoding='utf-8') as f:
@@ -58,9 +57,9 @@ def save_report(filename: Optional[str] = None):
 
 @save_report()
 def spending_by_category(
-        transactions: pd.DataFrame,
-        category: str,
-        date: Optional[str] = None
+    transactions: pd.DataFrame,
+    category: str,
+    date: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Возвращает траты по заданной категории за последние три месяца.
@@ -82,11 +81,10 @@ def spending_by_category(
 
     start_date = end_date - timedelta(days=90)
 
-    # Фильтрация по дате и категории
     mask = (
-            (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
-            (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d")) &
-            (transactions['Категория'] == category)
+        (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
+        (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d")) &
+        (transactions['Категория'] == category)
     )
 
     filtered = transactions[mask].copy()
@@ -95,7 +93,6 @@ def spending_by_category(
         logger.warning(f"Не найдено транзакций по категории '{category}'")
         return pd.DataFrame()
 
-    # Конвертируем сумму в float
     filtered['Сумма операции'] = filtered['Сумма операции'].astype(float)
 
     result = filtered[['Дата операции', 'Сумма операции', 'Описание']]
@@ -108,8 +105,8 @@ def spending_by_category(
 
 @save_report()
 def spending_by_weekday(
-        transactions: pd.DataFrame,
-        date: Optional[str] = None
+    transactions: pd.DataFrame,
+    date: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Возвращает средние траты по дням недели за последние три месяца.
@@ -130,10 +127,9 @@ def spending_by_weekday(
 
     start_date = end_date - timedelta(days=90)
 
-    # Фильтрация по дате
     mask = (
-            (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
-            (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
+        (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
+        (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
     )
 
     filtered = transactions[mask].copy()
@@ -142,31 +138,27 @@ def spending_by_weekday(
         logger.warning("Не найдено транзакций за указанный период")
         return pd.DataFrame()
 
-    # Конвертируем дату и сумму
     filtered['Дата операции'] = pd.to_datetime(filtered['Дата операции'])
     filtered['Сумма операции'] = filtered['Сумма операции'].astype(float)
 
-    # Добавляем день недели
     filtered['День недели'] = filtered['Дата операции'].dt.day_name()
 
-    # Группируем по дню недели и считаем среднее
     result = filtered.groupby('День недели')['Сумма операции'].mean().reset_index()
     result.columns = ['День недели', 'Средняя сумма']
 
-    # Сортируем по дням недели
     weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     result['День недели'] = pd.Categorical(result['День недели'], categories=weekday_order, ordered=True)
     result = result.sort_values('День недели')
 
-    logger.info(f"Отчет по дням недели сгенерирован")
+    logger.info("Отчет по дням недели сгенерирован")
 
     return result
 
 
 @save_report()
 def spending_by_workday(
-        transactions: pd.DataFrame,
-        date: Optional[str] = None
+    transactions: pd.DataFrame,
+    date: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Возвращает средние траты в рабочий и выходной день за последние три месяца.
@@ -187,10 +179,9 @@ def spending_by_workday(
 
     start_date = end_date - timedelta(days=90)
 
-    # Фильтрация по дате
     mask = (
-            (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
-            (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
+        (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
+        (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
     )
 
     filtered = transactions[mask].copy()
@@ -199,30 +190,26 @@ def spending_by_workday(
         logger.warning("Не найдено транзакций за указанный период")
         return pd.DataFrame()
 
-    # Конвертируем дату и сумму
     filtered['Дата операции'] = pd.to_datetime(filtered['Дата операции'])
     filtered['Сумма операции'] = filtered['Сумма операции'].astype(float)
 
-    # Определяем тип дня (0-4 = рабочие, 5-6 = выходные)
     filtered['Тип дня'] = filtered['Дата операции'].dt.dayofweek.apply(
         lambda x: 'Рабочий' if x < 5 else 'Выходной'
     )
 
-    # Группируем по типу дня
     result = filtered.groupby('Тип дня')['Сумма операции'].mean().reset_index()
     result.columns = ['Тип дня', 'Средняя сумма']
 
-    # Округляем до 2 знаков
     result['Средняя сумма'] = result['Средняя сумма'].round(2)
 
-    logger.info(f"Отчет по рабочим/выходным дням сгенерирован")
+    logger.info("Отчет по рабочим/выходным дням сгенерирован")
 
     return result
 
 
 def get_category_summary(
-        transactions: pd.DataFrame,
-        date: Optional[str] = None
+    transactions: pd.DataFrame,
+    date: Optional[str] = None
 ) -> Dict[str, float]:
     """
     Возвращает сводку по всем категориям за последние три месяца.
@@ -243,10 +230,9 @@ def get_category_summary(
 
     start_date = end_date - timedelta(days=90)
 
-    # Фильтрация по дате
     mask = (
-            (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
-            (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
+        (transactions['Дата операции'] >= start_date.strftime("%Y-%m-%d")) &
+        (transactions['Дата операции'] <= end_date.strftime("%Y-%m-%d"))
     )
 
     filtered = transactions[mask].copy()
@@ -255,13 +241,10 @@ def get_category_summary(
         logger.warning("Не найдено транзакций за указанный период")
         return {}
 
-    # Конвертируем сумму
     filtered['Сумма операции'] = filtered['Сумма операции'].astype(float)
 
-    # Группируем по категории
     summary_raw = filtered.groupby('Категория')['Сумма операции'].sum()
 
-    # Округляем значения и преобразуем в dict
     summary = {str(k): round(float(v), 2) for k, v in summary_raw.items()}
 
     logger.info(f"Найдено {len(summary)} категорий")
