@@ -5,7 +5,7 @@ __pycache__/
 *.so
 .Python
 
-# Виртуальное окружение
+# Virtual environments
 .venv/
 venv/
 env/
@@ -16,6 +16,11 @@ env/
 *.swp
 *.swo
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -23,14 +28,3 @@ Thumbs.db
 # Environment
 .env
 .env.local
-
-# Coverage
-.coverage
-htmlcov/
-.pytest_cache/
-
-# Reports
-*_report.json
-
-# Logs
-*.log
