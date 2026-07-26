@@ -30,6 +30,40 @@ class Product:
         self.__price = price
         self.quantity = quantity
 
+    def __str__(self) -> str:
+        """
+        Строковое представление продукта.
+
+        Returns:
+            Строка в формате: "Название продукта, 80 руб. Остаток: 15 шт."
+        """
+        return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт."
+
+    def __repr__(self) -> str:
+        """
+        Официальное строковое представление для разработчиков.
+
+        Returns:
+            Строка с конструктором объекта
+        """
+        return f"Product('{self.name}', '{self.description}', {self.__price}, {self.quantity})"
+
+    def __add__(self, other: 'Product') -> float:
+        """
+        Сложение двух продуктов.
+        Возвращает общую стоимость товаров на складе.
+
+        Args:
+            other: Другой объект Product
+
+        Returns:
+            Сумма стоимостей (price × quantity) обоих продуктов
+        """
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты Product")
+
+        return (self.__price * self.quantity) + (other.__price * other.quantity)
+
     @classmethod
     def new_product(cls, product_dict: dict) -> 'Product':
         """
@@ -107,6 +141,16 @@ class Category:
         Category.total_categories += 1
         Category.total_products += len(products)
 
+    def __str__(self) -> str:
+        """
+        Строковое представление категории.
+
+        Returns:
+            Строка в формате: "Название категории, количество продуктов: 200 шт."
+        """
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
     def add_product(self, product: Product):
         """
         Добавляет продукт в категорию.
@@ -125,9 +169,4 @@ class Category:
         Returns:
             Список строк с описанием продуктов
         """
-        result = []
-        for product in self.__products:
-            result.append(
-                f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт."
-            )
-        return result
+        return [str(product) for product in self.__products]

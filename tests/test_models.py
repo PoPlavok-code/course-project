@@ -56,7 +56,7 @@ class TestProduct:
 
         captured = capsys.readouterr()
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
-        assert product.price == 100.0  # Цена не изменилась
+        assert product.price == 100.0
 
     def test_price_setter_zero(self, capsys):
         """Тест сеттера цены с нулевым значением."""
@@ -65,7 +65,40 @@ class TestProduct:
 
         captured = capsys.readouterr()
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
-        assert product.price == 100.0  # Цена не изменилась
+        assert product.price == 100.0
+
+    def test_product_str(self):
+        """Тест магического метода __str__ для Product."""
+        product = Product("iPhone 15", "Смартфон", 99990.0, 50)
+        assert str(product) == "iPhone 15, 99990.0 руб. Остаток: 50 шт."
+
+    def test_product_repr(self):
+        """Тест магического метода __repr__ для Product."""
+        product = Product("iPhone 15", "Смартфон", 99990.0, 50)
+        assert repr(product) == "Product('iPhone 15', 'Смартфон', 99990.0, 50)"
+
+    def test_product_add(self):
+        """Тест магического метода __add__ для Product."""
+        product_a = Product("Товар A", "Описание A", 100.0, 10)
+        product_b = Product("Товар B", "Описание B", 200.0, 2)
+
+        result = product_a + product_b
+
+        # 100 * 10 + 200 * 2 = 1000 + 400 = 1400
+        assert result == 1400.0
+
+    def test_product_add_single_product(self):
+        """Тест сложения с одним продуктом."""
+        product = Product("Товар", "Описание", 50.0, 20)
+        # 50 * 20 = 1000
+        assert product + Product("Другой", "Описание", 0.0, 0) == 1000.0
+
+    def test_product_add_type_error(self):
+        """Тест ошибки типа при сложении."""
+        product = Product("Товар", "Описание", 100.0, 10)
+
+        with pytest.raises(TypeError):
+            product + "не продукт"
 
 
 class TestCategory:
@@ -177,6 +210,32 @@ class TestCategory:
 
         assert Category.total_products == initial_total + 1
 
+    def test_category_str(self):
+        """Тест магического метода __str__ для Category."""
+        products = [
+            Product("iPhone 15", "Смартфон", 99990.0, 50),
+            Product("iPhone 14", "Смартфон", 79990.0, 30)
+        ]
+
+        category = Category(
+            name="Смартфоны",
+            description="Мобильные телефоны",
+            products=products
+        )
+
+        # 50 + 30 = 80
+        assert str(category) == "Смартфоны, количество продуктов: 80 шт."
+
+    def test_category_str_empty(self):
+        """Тест __str__ для пустой категории."""
+        category = Category(
+            name="Пустая категория",
+            description="Описание",
+            products=[]
+        )
+
+        assert str(category) == "Пустая категория, количество продуктов: 0 шт."
+
 
 class TestPrivateAttributes:
     """Тесты для проверки приватности атрибутов."""
@@ -189,12 +248,10 @@ class TestPrivateAttributes:
             products=[]
         )
 
-        # Проверяем, что __products существует
         assert hasattr(category, '_Category__products')
 
     def test_price_is_private(self):
         """Тест что price — приватный атрибут."""
         product = Product("Товар", "Описание", 100.0, 10)
 
-        # Проверяем, что __price существует
         assert hasattr(product, '_Product__price')

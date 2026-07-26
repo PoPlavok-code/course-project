@@ -5,21 +5,13 @@ from src.models import Product, Category
 def main():
     """Основная функция."""
     print("=" * 60)
-    print("E-commerce: Управление товарами и категориями")
+    print("E-commerce: Магические методы")
     print("=" * 60)
 
-    # Создание продуктов через конструктор
+    # Создание продуктов
     product1 = Product(name="iPhone 15", description="Смартфон от Apple", price=99990.0, quantity=50)
     product2 = Product(name="iPhone 14", description="Предыдущая модель", price=79990.0, quantity=30)
-
-    # Создание продукта через new_product
-    product3_dict = {
-        'name': 'MacBook Pro 16',
-        'description': 'Мощный ноутбук',
-        'price': 299990.0,
-        'quantity': 15
-    }
-    product3 = Product.new_product(product3_dict)
+    product3 = Product(name="MacBook Pro 16", description="Мощный ноутбук", price=299990.0, quantity=15)
 
     # Создание категорий
     category1 = Category(
@@ -34,41 +26,32 @@ def main():
         products=[product3]
     )
 
-    # Добавление нового продукта через add_product
-    product4_dict = {
-        'name': 'Dell XPS 15',
-        'description': 'Ноутбук от Dell',
-        'price': 179990.0,
-        'quantity': 20
-    }
-    product4 = Product.new_product(product4_dict)
-    category2.add_product(product4)
+    # Демонстрация __str__
+    print("\n📱 Демонстрация __str__ для Product:")
+    print(f"  {product1}")
+    print(f"  {product2}")
+    print(f"  {product3}")
 
-    # Вывод информации
-    print(f"\n✅ Всего категорий: {Category.total_categories}")
+    print("\n📦 Демонстрация __str__ для Category:")
+    print(f"  {category1}")
+    print(f"  {category2}")
+
+    # Демонстрация __add__
+    print("\n💰 Демонстрация __add__ (сложение продуктов):")
+    print(f"  {product1.name}: {product1.price} руб. × {product1.quantity} шт. = {product1.price * product1.quantity} руб.")
+    print(f"  {product2.name}: {product2.price} руб. × {product2.quantity} шт. = {product2.price * product2.quantity} руб.")
+
+    total = product1 + product2
+    print(f"\n  Сумма: {product1.name} + {product2.name} = {total} руб.")
+
+    # Демонстрация repr
+    print("\n🔧 Демонстрация __repr__:")
+    print(f"  {repr(product1)}")
+
+    # Итоговая информация
+    print("\n" + "=" * 60)
+    print(f"✅ Всего категорий: {Category.total_categories}")
     print(f"✅ Всего продуктов: {Category.total_products}")
-
-    # Вывод информации по категориям с использованием геттера products
-    for category in [category1, category2]:
-        print(f"\n📦 Категория: {category.name}")
-        print(f"   Описание: {category.description}")
-        print(f"   Товаров: {len(category.products)}")
-
-        for product_info in category.products:
-            print(f"   - {product_info}")
-
-    # Тестирование сеттера цены
-    print("\n" + "=" * 60)
-    print("Тестирование сеттера цены")
-    print("=" * 60)
-
-    print(f"\nСтарая цена iPhone 15: {product1.price} руб.")
-    print("Пытаемся установить цену -100...")
-    product1.price = -100  # Должно вывести предупреждение
-    print(f"Новая цена iPhone 15: {product1.price} руб.")
-
-    print("\n" + "=" * 60)
-    print("Программа завершена")
     print("=" * 60)
 
 
