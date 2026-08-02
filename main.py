@@ -1,59 +1,73 @@
-"""Главный модуль приложения E-commerce."""
-from src.models import Product, Category
+class Product:
+    """Базовый класс для товаров"""
+
+    def __init__(self, name, description, price, quantity):
+        self.name = name
+        self.description = description
+        self.price = price
+        self.quantity = quantity
+
+    def __add__(self, other):
+        """
+        Задание 2: Сложение товаров.
+        Разрешаем складывать только объекты одинаковых классов.
+        """
+        # Используем type() для строгой проверки класса
+        if type(self) is not type(other):
+            raise TypeError("Нельзя складывать товары разных классов")
+
+        # Возвращаем сумму общей стоимости товаров (цена * количество)
+        return self.price * self.quantity + other.price * other.quantity
 
 
-def main():
-    """Основная функция."""
-    print("=" * 60)
-    print("E-commerce: Магические методы")
-    print("=" * 60)
+class Smartphone(Product):
+    """Класс-наследник для смартфонов (Задание 1)"""
 
-    # Создание продуктов
-    product1 = Product(name="iPhone 15", description="Смартфон от Apple", price=99990.0, quantity=50)
-    product2 = Product(name="iPhone 14", description="Предыдущая модель", price=79990.0, quantity=30)
-    product3 = Product(name="MacBook Pro 16", description="Мощный ноутбук", price=299990.0, quantity=15)
-
-    # Создание категорий
-    category1 = Category(
-        name="Смартфоны",
-        description="Мобильные телефоны",
-        products=[product1, product2]
-    )
-
-    category2 = Category(
-        name="Ноутбуки",
-        description="Портативные компьютеры",
-        products=[product3]
-    )
-
-    # Демонстрация __str__
-    print("\n📱 Демонстрация __str__ для Product:")
-    print(f"  {product1}")
-    print(f"  {product2}")
-    print(f"  {product3}")
-
-    print("\n📦 Демонстрация __str__ для Category:")
-    print(f"  {category1}")
-    print(f"  {category2}")
-
-    # Демонстрация __add__
-    print("\n💰 Демонстрация __add__ (сложение продуктов):")
-    print(f"  {product1.name}: {product1.price} руб. × {product1.quantity} шт. = {product1.price * product1.quantity} руб.")
-    print(f"  {product2.name}: {product2.price} руб. × {product2.quantity} шт. = {product2.price * product2.quantity} руб.")
-
-    total = product1 + product2
-    print(f"\n  Сумма: {product1.name} + {product2.name} = {total} руб.")
-
-    # Демонстрация repr
-    print("\n🔧 Демонстрация __repr__:")
-    print(f"  {repr(product1)}")
-
-    # Итоговая информация
-    print("\n" + "=" * 60)
-    print(f"✅ Всего категорий: {Category.total_categories}")
-    print(f"✅ Всего продуктов: {Category.total_products}")
-    print("=" * 60)
+    def __init__(self, name, description, price, quantity, efficiency, model, memory, color):
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
 
 
-if __name__ == "__main__":
-    main()
+class LawnGrass(Product):
+    """Класс-наследник для газонной травы (Задание 1)"""
+
+    def __init__(self, name, description, price, quantity, country, germination_period, color):
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
+
+
+class Category:
+    """Класс категории товаров"""
+
+    def __init__(self, name, description, products=None):
+        self.name = name
+        self.description = description
+        # Если список товаров не передан, создаем пустой
+        self.products = products if products is not None else []
+
+    def add_product(self, product):
+        """
+        Задание 3: Защита метода добавления товара.
+        Проверяем, что переданный объект является продуктом или его наследником.
+        """
+        # Используем isinstance() для проверки принадлежности к классу или наследникам
+        if not isinstance(product, Product):
+            raise TypeError("В категорию можно добавлять только объекты класса Product или его наследников")
+
+        self.products.append(product)
+
+    # Дополнительные методы для подсчета категорий и товаров (если были в прошлых ДЗ)
+    @classmethod
+    def get_category_count(cls):
+        return getattr(cls, 'category_count', 0)
+
+    @classmethod
+    def get_product_count(cls):
+        return getattr(cls, 'product_count', 0)
+
+
